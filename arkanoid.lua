@@ -17,7 +17,7 @@ local gameState = MENU
 -- menu options
 local menuBall = {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1}
 local time = 0
-
+local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5, dx = 1}
 
 
 -- Init function
@@ -48,6 +48,7 @@ function TIC()
     if gameState == MENU then
         updateMenu()
         updateMenuBall()
+        updateMenuPaddle()
         drawMenu()
     elseif gameState == GAME then
         if not paddle then
@@ -62,24 +63,61 @@ function TIC()
     end
 end
 
+-- draw grid background function
+function drawGrid()
+    local gridSize = 8
+    local gridColor = 1
+
+    for x = 0, screenWidth, gridSize do
+        line(x, 0, x, screenHeight, gridColor)
+    end
+
+    for y = 0, screenHeight, gridSize do
+        line(0, y, screenWidth, y, gridColor)
+    end
+end
+
+function updateMenuPaddle()
+    menuPaddle.x = menuPaddle.x + menuPaddle.dx
+
+    if menuPaddle.x < 0 then
+        menuPaddle.x = 0
+        menuPaddle.dx = -menuPaddle.dx
+    elseif menuPaddle.x + menuPaddle.width > screenWidth then
+        menuPaddle.x = screenWidth - menuPaddle.width
+        menuPaddle.dx = -menuPaddle.dx
+    end
+end
+
+function getTextWidth(text, scale)
+    return #text * 6 * scale
+end
+
+
 function drawMenu()
     cls()
-
-    -- Draw the menu ball
-    circ(menuBall.x, menuBall.y, menuBall.radius, 11)
 
     -- Clear the area behind the Arkanoid title
     rect(screenWidth / 2 - 28 * 1.2, screenHeight / 4, 6 * 8 * 1.2, 8 * 1.2, 0)
 
+    -- Draw the grid background
+    drawGrid()
+
+    -- Draw the menu ball
+    circ(menuBall.x, menuBall.y, menuBall.radius, 11)
+
+    -- Draw the menu paddle
+    rect(menuPaddle.x, menuPaddle.y, menuPaddle.width, menuPaddle.height, 12)
+
     -- Draw the Arkanoid title with a growing and shrinking effect
-    local titleScale = 1 + 0.2 * math.sin(time * 0.01)
+    local titleScale = 1 + 0.5 * math.sin(time * 0.05)
     local titleText = "Arkanoid"
+    local titleWidth = getTextWidth(titleText, titleScale)
     for i = 1, #titleText do
         local c = titleText:sub(i, i)
         local xOffset = (6 * (i - 1) * titleScale)
-        print(c, screenWidth / 2 - 28 * titleScale + xOffset, screenHeight / 4, 14, titleScale)
+        print(c, screenWidth / 2 - titleWidth / 2 + xOffset, screenHeight / 4, 14, titleScale)
     end
-    
 
     local mx, my, md = mouse()
     local mouseX = mx
@@ -89,28 +127,30 @@ function drawMenu()
 
     -- New Game button
     if mouseX >= screenWidth / 2 - 26 and mouseX <= screenWidth / 2 + 26 and mouseY >= screenHeight / 2 and mouseY <= screenHeight / 2 + 8 then
-        newGameScale = 2
+        newGameScale = 1.5
     end
 
     -- Quit button
     if mouseX >= screenWidth / 2 - 10 and mouseX <= screenWidth / 2 + 10 and mouseY >= screenHeight / 2 + 10 and mouseY <= screenHeight / 2 + 18 then
-        quitScale = 2
+        quitScale = 1.5
     end
 
     -- Draw New Game button with scale
     local newGameText = "New Game"
+    local newGameWidth = getTextWidth(newGameText, newGameScale)
     for i = 1, #newGameText do
         local c = newGameText:sub(i, i)
         local xOffset = (6 * (i - 1) * newGameScale)
-        print(c, screenWidth / 2 - 26 * newGameScale + xOffset, screenHeight / 2, 7, newGameScale)
+        print(c, screenWidth / 2 - newGameWidth / 2 + xOffset, screenHeight / 2, 7, newGameScale)
     end
 
     -- Draw Quit button with scale
     local quitText = "Quit"
+    local quitWidth = getTextWidth(quitText, quitScale)
     for i = 1, #quitText do
         local c = quitText:sub(i, i)
         local xOffset = (6 * (i - 1) * quitScale)
-        print(c, screenWidth / 2 - 10 * quitScale + xOffset, screenHeight / 2 + 10, 7, quitScale)
+        print(c, screenWidth / 2 - quitWidth / 2 + xOffset, screenHeight / 2 + 10, 7, quitScale)
     end
 end
 
