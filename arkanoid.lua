@@ -15,7 +15,15 @@ local GAME = 2
 local QUIT = 3
 local gameState = MENU
 -- menu options
-local menuBall = {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1}
+local menuBalls = {
+    {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1, color = 11},
+    {x = screenWidth / 2 + 20, y = screenHeight / 2 - 20, radius = 2, dx = -1, dy = 1, color = 8},
+    {x = screenWidth / 2 - 30, y = screenHeight / 2 + 15, radius = 2, dx = 1, dy = 1, color = 10},
+    {x = screenWidth / 2 + 10, y = screenHeight / 2 + 30, radius = 2, dx = -1, dy = -1, color = 9},
+    {x = screenWidth / 2 - 25, y = screenHeight / 2 - 25, radius = 2, dx = 1, dy = 1, color = 12}
+    -- TODO: put more balls here
+}
+
 local time = 0
 local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5, dx = 1}
 
@@ -47,7 +55,7 @@ function TIC()
 
     if gameState == MENU then
         updateMenu()
-        updateMenuBall()
+        updateMenuBalls()
         updateMenuPaddle()
         drawMenu()
     elseif gameState == GAME then
@@ -103,8 +111,10 @@ function drawMenu()
     -- Draw the grid background
     drawGrid()
 
-    -- Draw the menu ball
-    circ(menuBall.x, menuBall.y, menuBall.radius, 11)
+    -- Draw the menu balls
+    for _, ball in ipairs(menuBalls) do
+        circ(ball.x, ball.y, ball.radius, ball.color)
+    end
 
     -- Draw the menu paddle
     rect(menuPaddle.x, menuPaddle.y, menuPaddle.width, menuPaddle.height, 12)
@@ -154,15 +164,18 @@ function drawMenu()
     end
 end
 
-function updateMenuBall()
-    menuBall.x = menuBall.x + menuBall.dx
-    menuBall.y = menuBall.y + menuBall.dy
+-- Update menu balls function, which replace unique ball update function
+function updateMenuBalls()
+    for _, ball in ipairs(menuBalls) do
+        ball.x = ball.x + ball.dx
+        ball.y = ball.y + ball.dy
 
-    if menuBall.x < 0 or menuBall.x + menuBall.radius > screenWidth then
-        menuBall.dx = -menuBall.dx
-    end
-    if menuBall.y < 0 or menuBall.y + menuBall.radius > screenHeight then
-        menuBall.dy = -menuBall.dy
+        if ball.x < 0 or ball.x + ball.radius > screenWidth then
+            ball.dx = -ball.dx
+        end
+        if ball.y < 0 or ball.y + ball.radius > screenHeight then
+            ball.dy = -ball.dy
+        end
     end
 end
 
