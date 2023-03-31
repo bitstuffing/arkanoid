@@ -5,7 +5,15 @@
 
 -- global parameters
 local paddle
-local ball
+local ball = {
+    x = 0,
+    y = 0,
+    dx = 0,
+    dy = 0,
+    radius = 5,
+    speed = 150,
+    inPlay = false
+}
 local bricks
 local screenWidth = 240
 local screenHeight = 136
@@ -15,6 +23,15 @@ local startBricksY = 20
 local MENU = 1
 local GAME = 2
 local QUIT = 3
+local PAUSED = 4
+local pauseMenu = {
+    x = screenWidth / 2 - 40,
+    y = screenHeight / 2 - 20,
+    width = 80,
+    height = 40
+}
+local pauseMenuSelection = 1
+
 local gameState = MENU
 -- menu options
 local menuBalls = {
@@ -31,12 +48,14 @@ local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50,
 local score = 0
 local highScore = 0
 local lives = 3
+local level = 1
+local maxBounceAngle = math.rad(1) --paddle ball collision angle
 
 
 -- Init function
 function init()
     paddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5}
-    ball = {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1}
+    ball = {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1, speed = 150, inPlay = true}
     bricks = {}
 
     for i = 1, 6 do
@@ -75,10 +94,80 @@ function TIC()
         updateBall()
         checkCollisions()
         draw()
+        if checkLevelComplete() then
+            level = level + 1
+            ball.dx = ball.dx * 1.2
+            ball.dy = ball.dy * 1.2
+            ball.x = screenWidth / 2
+            ball.y = screenHeight / 2
+            paddle.x = screenWidth / 2 - 25
+            paddle.y = screenHeight - 10
+            init()
+        end
+    elseif gameState == PAUSED then
+        updatePauseMenu()
+        drawPauseMenu()    
     elseif gameState == QUIT then
         exit()
     end
 end
+
+function updatePauseMenu()
+    local mx, my, md = mouse()
+    local mouseX = mx
+    local mouseY = my
+
+    if mouseY >= screenHeight / 2 - 10 and mouseY <= screenHeight / 2  then
+        pauseMenuSelection = 1
+    elseif mouseY >= screenHeight / 2 + 2 and mouseY <= screenHeight / 2 + 12 then
+        pauseMenuSelection = 2
+    else
+        pauseMenuSelection = 0
+    end
+
+    -- Resume button
+    if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 8 and mouseY <= pauseMenu.y + 16 then
+        if md then
+            gameState = GAME
+        end
+    end
+
+    -- Quit button
+    if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 24 and mouseY <= pauseMenu.y + 32 then
+        if md then
+            gameState = MENU
+            init()
+        end
+    end
+end
+
+function drawPauseMenu()
+    cls()
+
+    -- Draw game
+    draw()
+
+    -- Draw semi-transparent overlay
+    rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, 14)
+    rect(pauseMenu.x + 1, pauseMenu.y + 1, pauseMenu.width - 2, pauseMenu.height - 2, 0)
+
+    local quitText = "Quit"
+    local resumeText = "Resume"
+
+    if pauseMenuSelection == 1 then
+        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, 14)
+    elseif pauseMenuSelection == 2 then
+        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, 14)
+    end
+
+    -- print "Resume" 
+    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, 10)
+
+    -- print "Main" 
+    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, 10)
+end
+
+
 
 -- draw grid background function
 function drawGrid()
@@ -232,6 +321,11 @@ function updatePaddle()
     elseif paddle.x + paddle.width > screenWidth then
         paddle.x = screenWidth - paddle.width
     end
+
+    -- Pause input handling
+    if keyp(KEY_ENTER) then
+        gameState = PAUSED
+    end
 end
 
 -- ball update function
@@ -269,12 +363,10 @@ end
 
 -- colisions function
 function checkCollisions()
-    -- paddle-ball collision
-    if ball.y + ball.radius >= paddle.y and ball.y + ball.radius <= paddle.y + paddle.height and ball.x + ball.radius >= paddle.x and ball.x - ball.radius <= paddle.x + paddle.width then
-        ball.dy = -ball.dy
-    end
     
-    -- ball collision
+    checkPaddleCollision()
+    
+    -- ball collision with bricks
     for i, brick in ipairs(bricks) do
         if brick.alive then
             if ball.y - ball.radius <= brick.y + brick.height and ball.y + ball.radius >= brick.y and ball.x + ball.radius >= brick.x and ball.x - ball.radius <= brick.x + brick.width then
@@ -284,8 +376,46 @@ function checkCollisions()
             end
         end
     end
-    
+
 end
+
+-- paddle-ball collision function
+function checkPaddleCollision()
+    if ball.y + ball.radius >= paddle.y and ball.y + ball.radius <= paddle.y + paddle.height then
+        if ball.x >= paddle.x and ball.x <= paddle.x + paddle.width then
+            local paddleCenter = paddle.x + paddle.width / 2
+            local ballDistanceFromPaddleCenter = ball.x - paddleCenter
+            local normalizedBallDistance = ballDistanceFromPaddleCenter / (paddle.width / 2)
+            local smoothFactor = 0.75
+            local bounceAngle = maxBounceAngle * normalizedBallDistance * smoothFactor
+
+            ball.dy = -ball.dy
+            ball.dx = ball.speed * math.sin(bounceAngle)
+
+            -- increase speed of ball after each paddle collision
+            ball.speed = ball.speed * 1.05
+
+            -- limit the maximum horizontal ball speed
+            local maxHorizontalSpeed = ball.speed * 0.75
+            if math.abs(ball.dx) > maxHorizontalSpeed then
+                ball.dx = math.sign(ball.dx) * maxHorizontalSpeed
+            end
+        end
+    end
+end
+
+
+
+-- Level completed check function 
+function checkLevelComplete()
+    for _, brick in ipairs(bricks) do
+        if brick.alive then
+            return false
+        end
+    end
+    return true
+end
+
     
 -- Draw function
 function draw()
@@ -303,6 +433,8 @@ function draw()
 
     -- Draw lives
     print("Lives: " .. lives, screenWidth - 60, 2, 7)
+    -- Draw level
+    print("Level: " .. level, screenWidth - 60, 12, 7)
     
     -- draw ball
     circ(ball.x, ball.y, ball.radius, 11)

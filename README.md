@@ -16,7 +16,7 @@ You can import this code to your TIC80 project:
 import code arkanoid.lua
 run (ctrl + r)
 
-## development status
+### Development status
 
 It's a simple TIC80 game for fun, but it's not finished yet. There is a lot of work to do, but I'm working on it.
 
@@ -26,10 +26,10 @@ The next list is the current status of the game:
 - [x] Add game score
 - [x] Add game high score
 - [x] Add game lives
-- [ ] Add game level
+- [X] Add game level
 - [ ] Add game sound
 - [ ] Add game music
-- [ ] Add game pause
+- [W] Add game pause
 - [ ] Add game over screen
 - [ ] Add game win screen
 - [ ] Add game credits
