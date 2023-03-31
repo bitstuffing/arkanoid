@@ -23,9 +23,11 @@ local menuBalls = {
     {x = screenWidth / 2 - 25, y = screenHeight / 2 - 25, radius = 2, dx = 1, dy = 1, color = 12}
     -- TODO: put more balls here
 }
-
 local time = 0
 local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5, dx = 1}
+-- game options
+local score = 0
+local lives = 3
 
 
 -- Init function
@@ -54,6 +56,10 @@ function TIC()
     time = time + 1
 
     if gameState == MENU then
+        -- reset games scores and lives
+        score = 0
+        lives = 3
+        -- continue with normal
         updateMenu()
         updateMenuBalls()
         updateMenuPaddle()
@@ -227,9 +233,22 @@ function updateBall()
     if ball.y < 0 then
         ball.dy = -ball.dy
     end
+    -- paddle-ball collision out of the screen
     if ball.y + ball.radius > screenHeight then
-        init()
-    end
+        lives = lives - 1
+        if lives > 0 then
+            ball.x = screenWidth / 2
+            ball.y = screenHeight / 2
+            ball.dx = 1
+            ball.dy = -1
+            paddle.x = screenWidth / 2 - 25
+            paddle.y = screenHeight - 10
+        else
+            gameState = MENU
+            init()
+        end
+    end    
+    
 end
 
 -- colisions function
@@ -239,13 +258,13 @@ function checkCollisions()
         ball.dy = -ball.dy
     end
     
-  
-    -- block-ball collision
+    -- ball collision
     for i, brick in ipairs(bricks) do
         if brick.alive then
             if ball.y - ball.radius <= brick.y + brick.height and ball.y + ball.radius >= brick.y and ball.x + ball.radius >= brick.x and ball.x - ball.radius <= brick.x + brick.width then
                 ball.dy = -ball.dy
                 brick.alive = false
+                score = score + 15 -- Increment score
             end
         end
     end
@@ -258,6 +277,12 @@ function draw()
     cls()
     -- draw paddle
     rect(paddle.x, paddle.y, paddle.width, paddle.height, 12)
+
+    -- Draw score
+    print("Score: " .. score, 10, 2, 7)
+
+    -- Draw lives
+    print("Lives: " .. lives, screenWidth - 60, 2, 7)
     
     -- draw ball
     circ(ball.x, ball.y, ball.radius, 11)
@@ -268,4 +293,5 @@ function draw()
             rect(brick.x, brick.y, brick.width, brick.height, 8)
         end
     end
+
 end
