@@ -9,6 +9,8 @@ local ball
 local bricks
 local screenWidth = 240
 local screenHeight = 136
+local startBricksX = 10
+local startBricksY = 20
 -- game states
 local MENU = 1
 local GAME = 2
@@ -27,6 +29,7 @@ local time = 0
 local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5, dx = 1}
 -- game options
 local score = 0
+local highScore = 0
 local lives = 3
 
 
@@ -39,8 +42,8 @@ function init()
     for i = 1, 6 do
         for j = 1, 10 do
             local brick = {
-                x = 10 + (j - 1) * 22,
-                y = 10 + (i - 1) * 10,
+                x = startBricksX + (j - 1) * 22,
+                y = startBricksY + (i - 1) * 10,
                 width = 20,
                 height = 8,
                 alive = true
@@ -116,6 +119,15 @@ function drawMenu()
 
     -- Draw the grid background
     drawGrid()
+
+    -- Draw high score in main menu
+    if highScore > 0 then
+        local highScoreText = "High Score: " .. highScore
+        local highScoreX = screenWidth - getTextWidth(highScoreText, 1) - 10
+        local highScoreY = 2
+        print(highScoreText, highScoreX, highScoreY, 15) -- 15 is white color
+    end
+
 
     -- Draw the menu balls
     for _, ball in ipairs(menuBalls) do
@@ -233,6 +245,9 @@ function updateBall()
     if ball.y < 0 then
         ball.dy = -ball.dy
     end
+    -- Update high score
+    highScore = math.max(score, highScore) 
+    
     -- paddle-ball collision out of the screen
     if ball.y + ball.radius > screenHeight then
         lives = lives - 1
@@ -247,7 +262,8 @@ function updateBall()
             gameState = MENU
             init()
         end
-    end    
+    end
+    
     
 end
 
@@ -280,6 +296,10 @@ function draw()
 
     -- Draw score
     print("Score: " .. score, 10, 2, 7)
+    -- Draw high score
+    if highScore > 0 then
+        print("High Score: " .. highScore, 10, 10, 7)
+    end
 
     -- Draw lives
     print("Lives: " .. lives, screenWidth - 60, 2, 7)
