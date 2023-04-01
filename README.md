@@ -7,6 +7,8 @@ and is written in LUA for TIC80 in the latest versions
 
 ![Game-play](https://i.ibb.co/6W56dds/Captura-desde-2023-03-31-18-24-10.png)
 
+![Game-play-pause](https://i.ibb.co/r2KBhK2/Captura-desde-2023-04-01-12-58-51.png)
+
 developer rev: 0.1.1
 
 ## HOWTO
@@ -27,12 +29,13 @@ The next list is the current status of the game:
 - [x] Add game high score
 - [x] Add game lives
 - [X] Add game level
-- [ ] Add game sound
-- [ ] Add game music
-- [W] Add game pause
+- [X] Add game pause
 - [ ] Add game over screen
 - [ ] Add game win screen
 - [ ] Add game credits
+- [ ] Add game sound
+- [ ] Add game music
+
 
 ## Author and license 
 

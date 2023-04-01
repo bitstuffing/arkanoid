@@ -50,7 +50,19 @@ local highScore = 0
 local lives = 3
 local level = 1
 local maxBounceAngle = math.rad(1) --paddle ball collision angle
-
+local colors = { --TODO: check if it's possible to use the colors from a pallete file
+    red = 8,
+    orange = 9,
+    yellow = 10,
+    green = 11,
+    blue = 12,
+    darkBlue = 1,
+    purple = 13,
+    white = 15,
+    black = 0,
+    lightGray = 6,
+    darkGray = 5
+}
 
 -- Init function
 function init()
@@ -148,25 +160,24 @@ function drawPauseMenu()
     draw()
 
     -- Draw semi-transparent overlay
-    rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, 14)
-    rect(pauseMenu.x + 1, pauseMenu.y + 1, pauseMenu.width - 2, pauseMenu.height - 2, 0)
+    rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, colors.darkGray)
+    rect(pauseMenu.x + 1, pauseMenu.y + 1, pauseMenu.width - 2, pauseMenu.height - 2, colors.black)
 
     local quitText = "Quit"
     local resumeText = "Resume"
 
     if pauseMenuSelection == 1 then
-        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, 14)
+        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, colors.darkGray)
     elseif pauseMenuSelection == 2 then
-        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, 14)
+        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, colors.darkGray)
     end
 
-    -- print "Resume" 
-    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, 10)
+    -- Print "Resume" 
+    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, colors.lightGray)
 
-    -- print "Main" 
-    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, 10)
+    -- Print "Quit" 
+    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, colors.lightGray)
 end
-
 
 
 -- draw grid background function
