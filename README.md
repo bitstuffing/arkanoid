@@ -28,8 +28,10 @@ The next list is the current status of the game:
 - [x] Add game score
 - [x] Add game high score
 - [x] Add game lives
-- [X] Add game level
-- [X] Add game pause
+- [x] Add game level
+- [x] Add game pause
+- [x] Add power up (paddle size)
+- [x] Add persistence (high score)
 - [ ] Add game over screen
 - [ ] Add game win screen
 - [ ] Add game credits

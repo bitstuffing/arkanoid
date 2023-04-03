@@ -5,6 +5,7 @@
 
 -- global parameters
 local paddle
+local PADDLE_WIDTH_INIT = 50
 local ball = {
     x = 0,
     y = 0,
@@ -46,7 +47,10 @@ local time = 0
 local menuPaddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5, dx = 1}
 -- game options
 local score = 0
+
+local HIGH_SCORE_INDEX = 0
 local highScore = 0
+
 local lives = 3
 local level = 1
 local maxBounceAngle = math.rad(1) --paddle ball collision angle
@@ -63,7 +67,31 @@ local colors = {
     lightGray = 6,
     darkGray = 5
 }
-local powerups = {} 
+local powerUps = {} 
+local powerUpsCollected = 0
+local powerUpsSpawned = 0
+local POWERUP_MAX = 2
+local POWERUP_PROBABILITY = 0.05 -- powerUp chance
+
+function loadHighScore()
+    local highScoreData = pmem(HIGH_SCORE_INDEX)
+    
+    if not highScoreData then
+        return 0
+    end
+
+    local highScore = tonumber(highScoreData)
+    
+    return highScore
+end
+
+function saveHighScore(highScore)
+    -- save("highscore.data", tostring(highScore))
+    pmem(HIGH_SCORE_INDEX,highScore)
+end
+
+
+
 -- function to creates powerups and insert it in into table 
 function spawnPowerUp(x, y, powerupType)
     local powerup = {
@@ -73,54 +101,97 @@ function spawnPowerUp(x, y, powerupType)
         width = 6,
         height = 6,
         type = powerupType,
-        active = true
+        dy = ball.speed / 2, -- makes the power-up pill to fall at half the speed of the ball
+        active = false,
+        visible = true,
+        duration = -1
     }
-    table.insert(powerups, powerup)
+    table.insert(powerUps, powerup)
+end
+
+-- function to check if two elements colide with each other
+function collide(a, b)
+    return a.x < b.x + b.width and a.y < b.y + b.height and b.x < a.x + a.width and b.y < a.y + a.height
 end
 
 -- function to update the position of power-ups
 function updatePowerUps()
-    for _, p in ipairs(powerups) do
-        if p.active then
+    for _, p in ipairs(powerUps) do
+        if p.duration >= 0 then
+            p.duration = p.duration - 1
+            if p.duration < 0 then
+                removePowerUpEffect(p)
+            end
+        end
+        if p.visible then
             p.y = p.y + p.speed
 
-            -- check collision with palette
+            -- check power-up pill collision with paddle
             if collide(p, paddle) then
                 applyPowerUpEffect(p)
-                p.active = false
+                p.visible = false
             end
 
             -- remove power-up if screen exits
-            if p.y > 136 then
+            if p.y > screenHeight then
                 p.active = false
+                p.visible = false
             end
         end
     end
 end
 
 -- function to apply power-up effect
+function removePowerUpEffect(powerup)
+    if powerup.type == 1 and powerup.active then -- decrease paddle size
+        powerup.active = false
+        powerUpsCollected = powerUpsCollected - 1
+        paddle.width = paddle.width - PADDLE_WIDTH_INIT * 0.25 --TODO review this way
+    end
+    -- TODO other powerUps must be here
+    --table.remove(powerUps, powerup)
+    for i, v in ipairs(powerUps) do
+        if v == powerup then
+          table.remove(powerUps, i)
+          break
+        end
+      end
+      
+end
+
+-- function to apply power-up effect
 function applyPowerUpEffect(powerup)
-    if powerup.type == 1 then -- increase paddle size
-        paddle.width = paddle.width + 20
+    if powerup.type == 1 and not powerup.active then -- increase paddle size
+        powerup.active = true
+        powerup.duration = 600
+        powerUpsCollected = powerUpsCollected + 1
+        paddle.width = paddle.width + PADDLE_WIDTH_INIT * 0.25
     end
     -- TODO other powerups must be here
 end
 
 -- draw powerups function
 function drawPowerUps()
-    for _, p in ipairs(powerups) do
-        if p.active then
-            rect(p.x, p.y, p.width, p.height, colors.lightBlue)
+    for _, powerUp in ipairs(powerUps) do
+        if powerUp.visible then
+            rect(powerUp.x, powerUp.y, powerUp.width, powerUp.height, colors.orange)
         end
     end
 end
 
 -- Init function
 function init()
-    paddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = 50, height = 5}
+    highScore = loadHighScore()
+    -- reset/init power-ups
+    powerUpsCollected = 0
+    powerUpsSpawned = 0
+    powerUps = {} 
+    -- reset/init paddle
+    paddle = {x = screenWidth / 2 - 25, y = screenHeight - 10, width = PADDLE_WIDTH_INIT, height = 5}
+    -- reset/init balls
     ball = {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1, speed = 150, inPlay = true}
+    -- reset/init bricks
     bricks = {}
-
     for i = 1, 6 do
         for j = 1, 10 do
             local brick = {
@@ -159,9 +230,19 @@ function TIC()
         checkCollisions()
         draw()
         if checkLevelComplete() then
+            -- reset/init power-ups counters
+            powerUpsCollected = 0
+            powerUpsSpawned = 0
+            -- increase level 
             level = level + 1
+            
             ball.dx = ball.dx * 1.2
             ball.dy = ball.dy * 1.2
+
+            -- increase velocity of the ball
+            ball.speed = ball.speed * 1.3
+
+            -- reset ball position
             ball.x = screenWidth / 2
             ball.y = screenHeight / 2
             paddle.x = screenWidth / 2 - 25
@@ -277,7 +358,7 @@ function drawMenu()
         local highScoreText = "High Score: " .. highScore
         local highScoreX = screenWidth - getTextWidth(highScoreText, 1) - 10
         local highScoreY = 2
-        print(highScoreText, highScoreX, highScoreY, 15) -- 15 is white color
+        print(highScoreText, highScoreX, highScoreY, colors.white)
     end
 
 
@@ -408,6 +489,12 @@ function updateBall()
     -- paddle-ball collision out of the screen
     if ball.y + ball.radius > screenHeight then
         lives = lives - 1
+        -- reset power-ups
+        powerUpsCollected = 0
+        powerUpsSpawned = 0
+        powerUps = {} 
+        paddle.width = PADDLE_WIDTH_INIT -- reset paddle width
+        --TODO here will reset all power-ups
         if lives > 0 then
             ball.x = screenWidth / 2
             ball.y = screenHeight / 2
@@ -416,31 +503,44 @@ function updateBall()
             paddle.x = screenWidth / 2 - 25
             paddle.y = screenHeight - 10
         else
+            saveHighScore(highScore)
             gameState = MENU
             init()
         end
-    end
-    
-    
+    end    
 end
 
 -- colisions function
 function checkCollisions()
-    
+    -- paddle-ball collisions
     checkPaddleCollision()
-    
-    -- ball collision with bricks
+    -- brick-ball collision with bricks
+    checkBrickCollisions()
+end
+
+function shouldSpawnPowerUp(chance)
+    return math.random() < chance
+end
+
+-- brick-ball collision function
+function checkBrickCollisions()
     for i, brick in ipairs(bricks) do
         if brick.alive then
             if ball.y - ball.radius <= brick.y + brick.height and ball.y + ball.radius >= brick.y and ball.x + ball.radius >= brick.x and ball.x - ball.radius <= brick.x + brick.width then
                 ball.dy = -ball.dy
                 brick.alive = false
                 score = score + 15 -- Increment score
+
+                -- Spawn a power-up with a chance and limit to POWERUP_MAX power-ups per screen
+                if shouldSpawnPowerUp(POWERUP_PROBABILITY) and powerUpsSpawned < POWERUP_MAX then
+                    spawnPowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2, 1)
+                    powerUpsSpawned = powerUpsSpawned + 1
+                end
             end
         end
     end
-
 end
+
 
 -- paddle-ball collision function
 function checkPaddleCollision()
@@ -498,6 +598,9 @@ function draw()
     print("Lives: " .. lives, screenWidth - 60, 2, 7)
     -- Draw level
     print("Level: " .. level, screenWidth - 60, 12, 7)
+
+    -- Draw power-ups
+    drawPowerUps()
     
     -- draw ball
     circ(ball.x, ball.y, ball.radius, 11)
