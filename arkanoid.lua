@@ -25,6 +25,8 @@ local MENU = 1
 local GAME = 2
 local QUIT = 3
 local PAUSED = 4
+local CREDITS = 5
+
 local pauseMenu = {
     x = screenWidth / 2 - 40,
     y = screenHeight / 2 - 20,
@@ -32,9 +34,10 @@ local pauseMenu = {
     height = 40
 }
 local pauseMenuSelection = 1
-
+-- default game screen -> menu
 local gameState = MENU
--- menu options
+local options = {"New Game", "Credits", "Quit"}
+
 local menuBalls = {
     {x = screenWidth / 2, y = screenHeight / 2, radius = 2, dx = 1, dy = -1, color = 11},
     {x = screenWidth / 2 + 20, y = screenHeight / 2 - 20, radius = 2, dx = -1, dy = 1, color = 8},
@@ -62,10 +65,10 @@ local colors = {
     blue = 12,
     darkBlue = 1,
     purple = 13,
-    white = 15,
+    darkGrey = 15,
     black = 0,
-    lightGray = 6,
-    darkGray = 5
+    darkGreen = 6,
+    lightGreen = 5
 }
 local powerUps = {} 
 local powerUpsCollected = 0
@@ -252,10 +255,41 @@ function TIC()
     elseif gameState == PAUSED then
         updatePauseMenu()
         drawPauseMenu()    
+    elseif gameState == CREDITS then
+        updateCredits()
+        drawCredits()
     elseif gameState == QUIT then
         exit()
     end
 end
+
+function updateCredits() -- TODO put click
+    if keyp(KEY_ENTER) then
+        gameState = MENU
+    end
+end
+
+function drawCredits()
+    cls()
+
+    local title = "Credits"
+    local creditsText = {
+        "Developed by",
+        "@bitstuffing",
+        "with love",
+        "",
+        "TIC80 community",
+        "GitHub CoPilot"
+    }
+
+    print(title, screenWidth / 2 - getTextWidth(title, 1) / 2, 10, colors.darkGrey)
+
+    for i, text in ipairs(creditsText) do
+        -- print(text, screenWidth / 2 - #text * 2, 30 + i * 10, colors.darkGrey)
+        print(text, screenWidth / 2 - getTextWidth(text, 1) / 2, 30 + i * 10, colors.darkGreen)
+    end
+end
+
 
 function updatePauseMenu()
     local mx, my, md = mouse()
@@ -293,23 +327,23 @@ function drawPauseMenu()
     draw()
 
     -- Draw semi-transparent overlay
-    rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, colors.darkGray)
+    rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, colors.lightGreen)
     rect(pauseMenu.x + 1, pauseMenu.y + 1, pauseMenu.width - 2, pauseMenu.height - 2, colors.black)
 
     local quitText = "Quit"
     local resumeText = "Resume"
 
     if pauseMenuSelection == 1 then
-        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, colors.darkGray)
+        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, colors.lightGreen)
     elseif pauseMenuSelection == 2 then
-        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, colors.darkGray)
+        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, colors.lightGreen)
     end
 
     -- Print "Resume" 
-    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, colors.lightGray)
+    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, colors.darkGreen)
 
     -- Print "Quit" 
-    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, colors.lightGray)
+    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, colors.darkGreen)
 end
 
 
@@ -358,7 +392,7 @@ function drawMenu()
         local highScoreText = "High Score: " .. highScore
         local highScoreX = screenWidth - getTextWidth(highScoreText, 1) - 10
         local highScoreY = 2
-        print(highScoreText, highScoreX, highScoreY, colors.white)
+        print(highScoreText, highScoreX, highScoreY, colors.darkGrey)
     end
 
 
@@ -383,36 +417,31 @@ function drawMenu()
     local mx, my, md = mouse()
     local mouseX = mx
     local mouseY = my
-    local newGameScale = 1
-    local quitScale = 1
+    
+    local optionColor = nil
+    for j, option in ipairs(options) do
 
-    -- New Game button
-    if mouseX >= screenWidth / 2 - 26 and mouseX <= screenWidth / 2 + 26 and mouseY >= screenHeight / 2 and mouseY <= screenHeight / 2 + 8 then
-        newGameScale = 1.5
+        optionColor = colors.darkGrey
+        local scale = 1
+
+        local optionWidth = getTextWidth(option, 1.5)
+
+        if mouseX >= screenWidth / 2 - optionWidth/2 and mouseX <= screenWidth / 2 + optionWidth/2 and mouseY >= screenHeight / 2 + j * 10 and mouseY <= screenHeight / 2 + ( j * 10 + 8 ) then
+            optionColor = colors.red
+            scale = 1.5
+        end
+
+        --print(option, screenWidth / 2 - #option * 2, screenHeight / 2 + i * 10, optionColor)
+        local newGameText = option
+        local newGameWidth = getTextWidth(newGameText, scale)
+        for i = 1, #newGameText do
+            local c = newGameText:sub(i, i)
+            local xOffset = (6 * (i - 1) * scale)
+            print(c, screenWidth / 2 - newGameWidth / 2 + xOffset, screenHeight / 2 + j * 10, 7, scale)
+        end
     end
 
-    -- Quit button
-    if mouseX >= screenWidth / 2 - 10 and mouseX <= screenWidth / 2 + 10 and mouseY >= screenHeight / 2 + 10 and mouseY <= screenHeight / 2 + 18 then
-        quitScale = 1.5
-    end
 
-    -- Draw New Game button with scale
-    local newGameText = "New Game"
-    local newGameWidth = getTextWidth(newGameText, newGameScale)
-    for i = 1, #newGameText do
-        local c = newGameText:sub(i, i)
-        local xOffset = (6 * (i - 1) * newGameScale)
-        print(c, screenWidth / 2 - newGameWidth / 2 + xOffset, screenHeight / 2, 7, newGameScale)
-    end
-
-    -- Draw Quit button with scale
-    local quitText = "Quit"
-    local quitWidth = getTextWidth(quitText, quitScale)
-    for i = 1, #quitText do
-        local c = quitText:sub(i, i)
-        local xOffset = (6 * (i - 1) * quitScale)
-        print(c, screenWidth / 2 - quitWidth / 2 + xOffset, screenHeight / 2 + 10, 7, quitScale)
-    end
 end
 
 -- Update menu balls function, which replace unique ball update function
@@ -436,20 +465,22 @@ function updateMenu()
     local mouseX = mx
     local mouseY = my
 
-    -- New Game button
-    if mouseX >= screenWidth / 2 - 26 and mouseX <= screenWidth / 2 + 26 and mouseY >= screenHeight / 2 and mouseY <= screenHeight / 2 + 8 then
-        if md then
-            gameState = GAME
-            init()
+    for j, option in ipairs(options) do
+        local optionWidth = getTextWidth(option, 1.5)
+        if mouseX >= screenWidth / 2 - optionWidth/2 and mouseX <= screenWidth / 2 + optionWidth/2 and mouseY >= screenHeight / 2 + j * 10 and mouseY <= screenHeight / 2 + ( j * 10 + 8 ) then
+            if md then
+                if j == 1 then
+                    gameState = GAME
+                    init()
+                elseif j == 2 then
+                    gameState = CREDITS
+                elseif j == 3 then
+                    gameState = QUIT
+                end
+            end
         end
     end
 
-    -- Quit button
-    if mouseX >= screenWidth / 2 - 10 and mouseX <= screenWidth / 2 + 10 and mouseY >= screenHeight / 2 + 10 and mouseY <= screenHeight / 2 + 18 then
-        if md then
-            gameState = QUIT
-        end
-    end
 end
 
 

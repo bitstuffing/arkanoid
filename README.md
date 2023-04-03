@@ -34,7 +34,7 @@ The next list is the current status of the game:
 - [x] Add persistence (high score)
 - [ ] Add game over screen
 - [ ] Add game win screen
-- [ ] Add game credits
+- [X] Add game credits
 - [ ] Add game sound
 - [ ] Add game music
 
