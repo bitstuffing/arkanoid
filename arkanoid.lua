@@ -63,6 +63,57 @@ local colors = {
     lightGray = 6,
     darkGray = 5
 }
+local powerups = {} 
+-- function to creates powerups and insert it in into table 
+function spawnPowerUp(x, y, powerupType)
+    local powerup = {
+        x = x,
+        y = y,
+        speed = 1,
+        width = 6,
+        height = 6,
+        type = powerupType,
+        active = true
+    }
+    table.insert(powerups, powerup)
+end
+
+-- function to update the position of power-ups
+function updatePowerUps()
+    for _, p in ipairs(powerups) do
+        if p.active then
+            p.y = p.y + p.speed
+
+            -- check collision with palette
+            if collide(p, paddle) then
+                applyPowerUpEffect(p)
+                p.active = false
+            end
+
+            -- remove power-up if screen exits
+            if p.y > 136 then
+                p.active = false
+            end
+        end
+    end
+end
+
+-- function to apply power-up effect
+function applyPowerUpEffect(powerup)
+    if powerup.type == 1 then -- increase paddle size
+        paddle.width = paddle.width + 20
+    end
+    -- TODO other powerups must be here
+end
+
+-- draw powerups function
+function drawPowerUps()
+    for _, p in ipairs(powerups) do
+        if p.active then
+            rect(p.x, p.y, p.width, p.height, colors.lightBlue)
+        end
+    end
+end
 
 -- Init function
 function init()
@@ -104,6 +155,7 @@ function TIC()
         end
         updatePaddle()
         updateBall()
+        updatePowerUps()
         checkCollisions()
         draw()
         if checkLevelComplete() then
