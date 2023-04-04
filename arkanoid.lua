@@ -76,6 +76,99 @@ local powerUpsSpawned = 0
 local POWERUP_MAX = 2
 local POWERUP_PROBABILITY = 0.05 -- powerUp chance
 
+local introNotes = {
+    {"C-4", 8}, {"D-4", 8}, {"E-4", 8}, {"F-4", 16}, {"G-4", 8}, {"A-4", 8}, {"B-4", 16},
+    {"C-5", 8}, {"B-4", 8}, {"A-4", 8}, {"G-4", 16}, {"F-4", 8}, {"E-4", 8}, {"D-4", 16},
+    {"C-4", 8}, {"E-4", 8}, {"G-4", 8}, {"C-5", 16}, {"G-4", 8}, {"E-4", 8}, {"C-4", 16},
+    {"G-3", 8}, {"C-4", 8}, {"E-4", 8}, {"G-4", 16}, {"C-5", 8}, {"G-4", 8}, {"E-4", 16},
+    {"A-4", 8}, {"C-5", 8}, {"E-5", 8}, {"A-5", 16}, {"E-5", 8}, {"C-5", 8}, {"A-4", 16},
+    {"F-4", 8}, {"A-4", 8}, {"C-5", 8}, {"F-5", 16}, {"C-5", 8}, {"A-4", 8}, {"F-4", 16},
+    {"E-4", 8}, {"G-4", 8}, {"C-5", 8}, {"E-5", 16}, {"C-5", 8}, {"G-4", 8}, {"E-4", 16},
+    {"D-4", 8}, {"F-4", 8}, {"A-4", 8}, {"D-5", 16}, {"A-4", 8}, {"F-4", 8}, {"D-4", 16},
+}
+
+local newLiveNotes = {
+    {{"C-4", "E-4", "G-4"}, 8}, {{"D-4", "F-4", "A-4"}, 8}, {{"E-4", "G-4", "B-4"}, 8},
+    {{"F-4", "A-4", "C-5"}, 16}, {{"G-4", "B-4", "D-5"}, 8}, {{"A-4", "C-5", "E-5"}, 8},
+    {{"B-4", "D-5", "F-5"}, 16}, {{"C-5", "E-5", "G-5"}, 8}, {{"C-5", "E-5", "G-5"}, 8}
+}
+
+local tensionNotes = {
+    {{"C-4", "E-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4}, {{"A-3", "C-4", "F-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"C-4", "E-4", "G-4"}, 2},
+    {{"B-3", "D-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 2},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4}, {{"A-3", "C-4", "F-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"C-4", "E-4", "G-4"}, 2},
+    {{"B-3", "D-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"B-3", "D-4", "G-4"}, 4},
+    {{"A-3", "C-4", "F-4"}, 8},
+}
+
+local normalNotes = {
+    
+    {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4}, {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4},
+    {{"G-3", "B-3", "D-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4}, {{"G-4", "B-4", "D-5"}, 4},
+    {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4},
+    {{"D-4", "F-4", "A-4"}, 4}, {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4}, {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4},
+    {{"G-3", "B-3", "D-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4}, {{"G-4", "B-4", "D-5"}, 4},
+    {{"E-4", "G-4", "B-4"}, 8},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"F-4", "A-4", "C-5"}, 4}, {{"G-4", "B-4", "D-5"}, 4}, {{"A-3", "C-4", "E-4"}, 4},
+    {{"F-3", "A-3", "C-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4},
+    {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4}, {{"F-3", "A-3", "C-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 4}, {{"F-4", "A-4", "C-5"}, 4}, {{"G-4", "B-4", "D-5"}, 4}, {{"A-3", "C-4", "E-4"}, 4},
+    {{"F-3", "A-3", "C-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4}, {{"C-4", "E-4", "G-4"}, 4}, {{"D-4", "F-4", "A-4"}, 4},
+    {{"E-4", "G-4", "B-4"}, 4}, {{"A-3", "C-4", "E-4"}, 4}, {{"F-3", "A-3", "C-4"}, 4}, {{"G-3", "B-3", "D-4"}, 4},
+    {{"C-4", "E-4", "G-4"}, 8}
+}
+
+local normalNoteCounter = 0
+local normalTimer = 0
+local normalSpeed = 8 -- speed melody plays at
+
+function playNormalMelody()
+    playMelody(normalNotes)
+end
+function playStressMelody()
+    playMelody(tensionNotes)
+end
+
+function playMelody(normalNotes)
+    local noteIndex = math.floor(normalNoteCounter / normalSpeed) % #normalNotes + 1
+    local chord = normalNotes[noteIndex][1]
+    local duration = normalNotes[noteIndex][2]
+
+    if normalNoteCounter % normalSpeed == 0 then
+        for i, note in ipairs(chord) do
+            sfx(i, note, 5, 3, duration, 1)
+        end
+    end
+
+    normalNoteCounter = normalNoteCounter + 1
+end
+
+local introNoteIndex = 1
+local introTimer = 0
+local introSpeed = 2 -- normal game melody speed
+
+function playGameMelody()
+    if introTimer <= 0 then
+        local noteData = introNotes[introNoteIndex]
+        local note = noteData[1]
+        local duration = noteData[2] * introSpeed
+        sfx(10, note, 5, 3, 10, 1) -- Reproduce la nota en el canal 0
+        introTimer = duration
+
+        introNoteIndex = introNoteIndex + 1
+        if introNoteIndex > #introNotes then
+            introNoteIndex = 1
+        end
+    end
+
+    introTimer = introTimer - 1
+end
+
+
 function loadHighScore()
     local highScoreData = pmem(HIGH_SCORE_INDEX)
     
@@ -107,6 +200,24 @@ function spawnPowerUp(x, y, powerupType)
         dy = ball.speed / 2, -- makes the power-up pill to fall at half the speed of the ball
         active = false,
         visible = true,
+        color = colors.orange,
+        duration = -1
+    }
+    table.insert(powerUps, powerup)
+end
+
+function spawnNewLife(x, y, powerupType)
+    local powerup = {
+        x = x,
+        y = y,
+        speed = 1,
+        width = 6,
+        height = 6,
+        type = powerupType,
+        dy = ball.speed / 2, -- makes the power-up pill to fall at half the speed of the ball
+        active = false,
+        visible = true,
+        color = colors.red,
         duration = -1
     }
     table.insert(powerUps, powerup)
@@ -131,7 +242,16 @@ function updatePowerUps()
 
             -- check power-up pill collision with paddle
             if collide(p, paddle) then
-                applyPowerUpEffect(p)
+                -- sound effect when paddle hits power-up pill
+                sfx(1, "B-6", 3, 1, 10)
+                sfx(2, "D-6", 3, 3, 10)
+                
+                if (p.type == 1) then
+                    applyPowerUpEffect(p)
+                elseif (p.type == 2) then
+                    lives = lives + 1
+                end
+                
                 p.visible = false
             end
 
@@ -177,7 +297,7 @@ end
 function drawPowerUps()
     for _, powerUp in ipairs(powerUps) do
         if powerUp.visible then
-            rect(powerUp.x, powerUp.y, powerUp.width, powerUp.height, colors.orange)
+            rect(powerUp.x, powerUp.y, powerUp.width, powerUp.height, powerUp.color)
         end
     end
 end
@@ -211,10 +331,10 @@ end
 
 -- TIC main function
 function TIC()
-    
     time = time + 1
-
+    
     if gameState == MENU then
+        playNormalMelody()
         -- reset games scores and lives
         score = 0
         lives = 3
@@ -224,6 +344,11 @@ function TIC()
         updateMenuPaddle()
         drawMenu()
     elseif gameState == GAME then
+        if lives > 1 then
+            playGameMelody()
+        else
+            playStressMelody()
+        end
         if not paddle then
             init()
         end
@@ -431,7 +556,6 @@ function drawMenu()
             scale = 1.5
         end
 
-        --print(option, screenWidth / 2 - #option * 2, screenHeight / 2 + i * 10, optionColor)
         local newGameText = option
         local newGameWidth = getTextWidth(newGameText, scale)
         for i = 1, #newGameText do
@@ -561,11 +685,18 @@ function checkBrickCollisions()
                 ball.dy = -ball.dy
                 brick.alive = false
                 score = score + 15 -- Increment score
+                
+                -- sound effect when brick is hit
+                sfx(0, "B-3", 3, 0, 10)
+                sfx(1, "D-3", 3, 2, 10)
 
                 -- Spawn a power-up with a chance and limit to POWERUP_MAX power-ups per screen
-                if shouldSpawnPowerUp(POWERUP_PROBABILITY) and powerUpsSpawned < POWERUP_MAX then
+                if (shouldSpawnPowerUp(POWERUP_PROBABILITY) and powerUpsSpawned < POWERUP_MAX ) then
                     spawnPowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2, 1)
                     powerUpsSpawned = powerUpsSpawned + 1
+                end
+                if lives == 1 and math.random() < POWERUP_PROBABILITY then
+                    spawnNewLife(brick.x + brick.width / 2, brick.y + brick.height / 2, 2)
                 end
             end
         end
@@ -588,6 +719,10 @@ function checkPaddleCollision()
 
             -- increase speed of ball after each paddle collision
             ball.speed = ball.speed * 1.05
+
+            -- sound effect when paddle hits ball
+            sfx(2, "B-4", 3, 1, 10)
+            sfx(3, "D-4", 3, 3, 10)
 
             -- limit the maximum horizontal ball speed
             local maxHorizontalSpeed = ball.speed * 0.75

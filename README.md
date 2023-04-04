@@ -30,13 +30,13 @@ The next list is the current status of the game:
 - [x] Add game lives
 - [x] Add game level
 - [x] Add game pause
-- [x] Add power up (paddle size)
+- [x] Add power up (paddle size, new live)
 - [x] Add persistence (high score)
 - [ ] Add game over screen
 - [ ] Add game win screen
 - [X] Add game credits
-- [ ] Add game sound
-- [ ] Add game music
+- [X] Add game sound
+- [X] Add game music
 
 
 ## Author and license 
