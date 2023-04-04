@@ -26,6 +26,7 @@ local GAME = 2
 local QUIT = 3
 local PAUSED = 4
 local CREDITS = 5
+local GAMEOVER = 6
 -- ready screen message control flag
 local isReady = false
 
@@ -187,8 +188,6 @@ function saveHighScore(highScore)
     -- save("highscore.data", tostring(highScore))
     pmem(HIGH_SCORE_INDEX,highScore)
 end
-
-
 
 -- function to creates powerups and insert it in into table 
 function spawnPowerUp(x, y, powerupType)
@@ -385,10 +384,70 @@ function TIC()
     elseif gameState == CREDITS then
         updateCredits()
         drawCredits()
+    elseif gameState == GAMEOVER then
+        updateGameOver()
+        drawGameOver()
     elseif gameState == QUIT then
         exit()
     end
 end
+
+function updateGameOver()
+    local mx, my, md = mouse()
+    local mouseX = mx
+    local mouseY = my
+
+    -- Try Again
+    if mouseY >= screenHeight / 2 - 10 and mouseY <= screenHeight / 2 then
+        if md then
+            init()
+            gameState = MENU
+        end
+    end
+
+    -- Back to Menu
+    if mouseY >= screenHeight / 2 + 10 and mouseY <= screenHeight / 2 + 20 then
+        if md then
+            gameState = MENU
+        end
+    end
+end
+
+function drawGameOver()
+
+    drawGrid()
+
+    -- Draw score
+    print("Score: " .. score, 10, 2, 7)
+    -- Draw high score
+    if highScore > 0 then
+        print("High Score: " .. highScore, 10, 10, 7)
+    end
+
+    -- Draw lives
+    print("Lives: " .. lives, screenWidth - 60, 2, 7)
+    -- Draw level
+    print("Level: " .. level, screenWidth - 60, 12, 7)
+
+    local gameOverText = "Game Over"
+    local backToMenuText = "Back to Menu"
+    local tryAgainText = "Try Again"
+
+    -- Draw semi-transparent overlay
+    rectb(screenWidth / 2 - getTextWidth(backToMenuText, 1) / 2 - 10,  screenHeight / 2 - 40, getTextWidth(backToMenuText, 1) + 16, 66, colors.lightGreen)
+    rect(screenWidth / 2 - getTextWidth(backToMenuText, 1) / 2 - 9,  screenHeight / 2 - 38, getTextWidth(backToMenuText, 1) + 14 , 62,  colors.black)
+
+    -- Print "Game Over" 
+    print(gameOverText, screenWidth / 2 - getTextWidth(gameOverText, 1) / 2, screenHeight / 2 - 30, colors.green)
+
+    -- Print "Try Again" 
+    print(tryAgainText, screenWidth / 2 - getTextWidth(tryAgainText, 1) / 2, screenHeight / 2 + 10, colors.darkGreen)
+
+    -- Print "Back to Menu" 
+    print(backToMenuText, screenWidth / 2 - getTextWidth(backToMenuText, 1) / 2, screenHeight / 2 - 10, colors.darkGreen)
+end
+
+
 
 function updateCredits() -- TODO put click
     if keyp(KEY_ENTER) then
@@ -680,7 +739,7 @@ function updateBall()
             gameState = PAUSED
         else
             saveHighScore(highScore)
-            gameState = MENU
+            gameState = GAMEOVER
             init()
         end
     end    

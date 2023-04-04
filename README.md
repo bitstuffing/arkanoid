@@ -9,7 +9,7 @@ and is written in LUA for TIC80 in the latest versions
 
 ![Game-play-pause](https://i.ibb.co/r2KBhK2/Captura-desde-2023-04-01-12-58-51.png)
 
-developer rev: 0.2.0
+developer rev: 0.3
 
 ## HOWTO
 
@@ -32,8 +32,7 @@ The next list is the current status of the game:
 - [x] Add pause menu
 - [x] Add Power-Ups (paddle size, new live)
 - [x] Add persistence for high score
-- [ ] Add Game Over screen
-- [ ] Add new record screen
+- [x] Add Game Over screen
 - [X] Add 'Ready?' screen when you loose a life
 - [X] Add credits screen
 - [X] Add sound
