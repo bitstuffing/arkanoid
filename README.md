@@ -9,7 +9,7 @@ and is written in LUA for TIC80 in the latest versions
 
 ![Game-play-pause](https://i.ibb.co/r2KBhK2/Captura-desde-2023-04-01-12-58-51.png)
 
-developer rev: 0.1.1
+developer rev: 0.2.0
 
 ## HOWTO
 
@@ -24,19 +24,20 @@ It's a simple TIC80 game for fun, but it's not finished yet. There is a lot of w
 
 The next list is the current status of the game:
 
-- [x] Add title screen
-- [x] Add game score
-- [x] Add game high score
-- [x] Add game lives
-- [x] Add game level
-- [x] Add game pause
-- [x] Add power up (paddle size, new live)
-- [x] Add persistence (high score)
-- [ ] Add game over screen
-- [ ] Add game win screen
-- [X] Add game credits
-- [X] Add game sound
-- [X] Add game music
+- [x] Add welcome screen
+- [x] Add game score in screen
+- [x] Add high score in screen
+- [x] Add lives
+- [x] Add levels
+- [x] Add pause menu
+- [x] Add Power-Ups (paddle size, new live)
+- [x] Add persistence for high score
+- [ ] Add Game Over screen
+- [ ] Add new record screen
+- [X] Add 'Ready?' screen when you loose a life
+- [X] Add credits screen
+- [X] Add sound
+- [X] Add music effects 
 
 
 ## Author and license 

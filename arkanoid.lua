@@ -26,6 +26,8 @@ local GAME = 2
 local QUIT = 3
 local PAUSED = 4
 local CREDITS = 5
+-- ready screen message control flag
+local isReady = false
 
 local pauseMenu = {
     x = screenWidth / 2 - 40,
@@ -421,26 +423,34 @@ function updatePauseMenu()
     local mouseX = mx
     local mouseY = my
 
-    if mouseY >= screenHeight / 2 - 10 and mouseY <= screenHeight / 2  then
-        pauseMenuSelection = 1
-    elseif mouseY >= screenHeight / 2 + 2 and mouseY <= screenHeight / 2 + 12 then
-        pauseMenuSelection = 2
-    else
-        pauseMenuSelection = 0
-    end
-
-    -- Resume button
-    if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 8 and mouseY <= pauseMenu.y + 16 then
+    if isReady then
         if md then
+            isReady = false
             gameState = GAME
+            
         end
-    end
+    elseif gameState == PAUSED then
+        if mouseY >= screenHeight / 2 - 10 and mouseY <= screenHeight / 2  then
+            pauseMenuSelection = 1
+        elseif mouseY >= screenHeight / 2 + 2 and mouseY <= screenHeight / 2 + 12 then
+            pauseMenuSelection = 2
+        else
+            pauseMenuSelection = 0
+        end
 
-    -- Quit button
-    if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 24 and mouseY <= pauseMenu.y + 32 then
-        if md then
-            gameState = MENU
-            init()
+        -- Resume button
+        if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 8 and mouseY <= pauseMenu.y + 16 then
+            if md then
+                gameState = GAME
+            end
+        end
+
+        -- Quit button
+        if mouseX >= pauseMenu.x + 10 and mouseX <= pauseMenu.x + 70 and mouseY >= pauseMenu.y + 24 and mouseY <= pauseMenu.y + 32 then
+            if md then
+                gameState = MENU
+                init()
+            end
         end
     end
 end
@@ -455,20 +465,29 @@ function drawPauseMenu()
     rectb(pauseMenu.x, pauseMenu.y, pauseMenu.width, pauseMenu.height, colors.lightGreen)
     rect(pauseMenu.x + 1, pauseMenu.y + 1, pauseMenu.width - 2, pauseMenu.height - 2, colors.black)
 
-    local quitText = "Quit"
-    local resumeText = "Resume"
+    if isReady then
+        -- Draw semi-transparent overlay
+        rectb(0, 0, screenWidth, screenHeight, colors.black)
+        -- Print "Ready?"
+        local readyText = "Ready?"
+        print(readyText, screenWidth / 2 - getTextWidth(readyText, 1) / 2, screenHeight / 2 - 3, colors.darkGreen)
 
-    if pauseMenuSelection == 1 then
-        rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, colors.lightGreen)
-    elseif pauseMenuSelection == 2 then
-        rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, colors.lightGreen)
+    elseif gameState == PAUSED then
+        local quitText = "Quit"
+        local resumeText = "Resume"
+
+        if pauseMenuSelection == 1 then
+            rect(screenWidth / 2 - getTextWidth(resumeText, 1) / 2 - 2, screenHeight / 2 - 12, getTextWidth(resumeText, 1) + 4, 10, colors.lightGreen)
+        elseif pauseMenuSelection == 2 then
+            rect(screenWidth / 2 - getTextWidth(quitText, 1) / 2 - 2, screenHeight / 2 + 4, getTextWidth(quitText, 1) + 4, 10, colors.lightGreen)
+        end
+
+        -- Print "Resume" 
+        print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, colors.darkGreen)
+
+        -- Print "Quit" 
+        print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, colors.darkGreen)
     end
-
-    -- Print "Resume" 
-    print(resumeText, screenWidth / 2 - getTextWidth(resumeText, 1) / 2, screenHeight / 2 - 10, colors.darkGreen)
-
-    -- Print "Quit" 
-    print(quitText, screenWidth / 2 - getTextWidth(quitText, 1) / 2, screenHeight / 2 + 6, colors.darkGreen)
 end
 
 
@@ -657,6 +676,8 @@ function updateBall()
             ball.dy = -1
             paddle.x = screenWidth / 2 - 25
             paddle.y = screenHeight - 10
+            isReady = true
+            gameState = PAUSED
         else
             saveHighScore(highScore)
             gameState = MENU
